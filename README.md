@@ -17,7 +17,7 @@ A lightning-fast, user-friendly URL shortening service that transforms your long
 
 ## 🛠️ Tech Stack
 - Frontend: HTML5, CSS3, JavaScript
-- API: [TinyURL API](https://tinyurl.com/app/dev)
+- API: [Spoo.me API](https://spoo.me/api)
 - Hosting: GitHub Pages
 
 ## 🎮 How to Use
@@ -34,15 +34,22 @@ A lightning-fast, user-friendly URL shortening service that transforms your long
 
 ## 🔄 API Details
 ```javascript
-API Endpoint: https://tinyurl.com/api-create.php
-Method: GET
-Response: Plain text shortened URL
+API Endpoint: https://spoo.me/api/v1/shorten
+Method: POST
+Headers: {
+    'Content-Type': 'application/json'
+}
+Body: {
+    "url": "your-long-url"
+}
+Response: JSON with shortened URL
 ```
 
 ## 🚫 Known Issues
-- Occasional API timeout
-- No HTTPS support for some redirects
-- Rate limiting on heavy usage
+- Rate limiting on free tier
+- API requires CORS handling
+- Maximum URL length restrictions
+- Service availability dependent on spoo.me uptime
 
 ## 📞 Support
 Found a bug? Open an issue or contact us!
