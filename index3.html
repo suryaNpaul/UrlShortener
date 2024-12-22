@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>URL Shortener</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+      :root {
+        --bg-color-light: #ffffff;
+        --text-color-light: #000000;
+        --bg-color-dark: #1e1e1e;
+        --text-color-dark: #ffffff;
+        --gradient-light: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+        --gradient-dark: linear-gradient(135deg, #1e3c72, #2a5298);
+      }
+
+      body {
+        font-family: "Poppins", sans-serif;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background: var(--gradient-light);
+        color: var(--text-color-light);
+        transition: all 0.3s ease-in-out;
+      }
+
+      .dark-mode {
+        background: var(--gradient-dark);
+        color: var(--text-color-dark);
+      }
+
+      .main-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 1rem;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 2rem;
+      }
+
+      .toggle {
+        width: 50px;
+        height: 25px;
+        background: #ccc;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: background 0.3s;
+        position: relative;
+      }
+
+      .toggle:before {
+        content: "";
+        position: absolute;
+        width: 23px;
+        height: 23px;
+        background: white;
+        border-radius: 50%;
+        top: 1px;
+        left: 1px;
+        transition: transform 0.3s;
+      }
+
+      .toggle.active {
+        background: #76c7c0;
+      }
+
+      .toggle.active:before {
+        transform: translateX(25px);
+      }
+      #qrcode{
+        display: flex;
+        justify-content: center;
+      }
+
+      .content-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .container {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(10px);
+      }
+
+      .stats-section {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 2rem;
+        border-radius: 20px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        backdrop-filter: blur(10px);
+        margin-top: 2rem;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .stats-card {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1.5rem;
+        border-radius: 15px;
+        text-align: center;
+        transition: transform 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .stats-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .stats-card i {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: #4a90e2;
+      }
+
+      .stats-card h4 {
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .stats-card p {
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 0;
+      }
+
+      .chart-container {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .chart-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-top: 2rem;
+      }
+
+      .stats-table {
+        width: 100%;
+        margin-top: 1rem;
+        border-collapse: separate;
+        border-spacing: 0 0.5rem;
+      }
+
+      .stats-table th,
+      .stats-table td {
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .stats-table th {
+        font-weight: 600;
+        text-align: left;
+      }
+
+      .stats-table tr:hover td {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .breakdown-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1.5rem;
+      }
+
+      .breakdown-card {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 10px;
+      }
+
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem;
+        border-radius: 10px;
+        background: white;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        display: none;
+        z-index: 1000;
+        max-width: 350px;
+        animation: slideIn 0.3s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+        }
+        to {
+          transform: translateX(0);
+        }
+      }
+
+      .notification.show {
+        display: block;
+      }
+
+      .notification.error {
+        background: #fee2e2;
+        border-left: 4px solid #ef4444;
+      }
+
+      .notification.success {
+        background: #dcfce7;
+        border-left: 4px solid #22c55e;
+      }
+
+      .copy-button {
+        background: #4caf50;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .copy-button:hover {
+        background: #45a049;
+      }
+
+      .qr-section {
+        text-align: center;
+        margin-top: 1rem;
+      }
+
+      .download-qr {
+        background: #2196f3;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 1rem;
+      }
+
+      .refresh-button {
+        background: #ff9800;
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 1rem;
+      }
+      .refresh-button:hover {
+        background: #e68900;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main-container">
+      <div class="header">
+        <h1><i class="fas fa-link"></i> URL Shortener</h1>
+        <div id="toggleMode" class="toggle"></div>
+      </div>
+
+      <div class="content-grid">
+        <!-- URL Shortener Form -->
+        <div class="container">
+          <h3 class="mb-3">Shorten URL</h3>
+          <form id="shortenForm">
+            <div class="mb-3">
+              <label for="url" class="form-label">Enter URL</label>
+              <input
+                type="url"
+                class="form-control"
+                id="url"
+                required
+                placeholder="https://example.com"
+              />
+            </div>
+
+            <div class="mb-3">
+              <label for="alias" class="form-label"
+                >Custom Alias (Optional)</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="alias"
+                placeholder="customAlias"
+              />
+            </div>
+
+            <div class="row mb-3">
+              <div class="col">
+                <label for="password" class="form-label">Password</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="password"
+                  placeholder="Password"
+                />
+              </div>
+              <div class="col">
+                <label for="maxClicks" class="form-label">Max Clicks</label>
+                <input
+                  type="number"
+                  class="form-control"
+                  id="maxClicks"
+                  placeholder="unlimited(Default)"
+                />
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="fas fa-paper-plane"></i> Shorten URL
+            </button>
+          </form>
+        </div>
+
+        <!-- Results Section -->
+        <div class="container">
+          <h3 class="mb-3">Generated URL</h3>
+          <div id="shortUrlContainer" class="p-3 bg-light rounded text-center">
+            <p class="text-muted">Shortened URL will appear here</p>
+          </div>
+
+          <div class="qr-section">
+            <h4>QR Code</h4>
+            <div id="qrcode"></div>
+            <button id="downloadQR" class="download-qr">
+              <i class="fas fa-download"></i> Download QR Code
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistics Section -->
+      <div class="stats-section">
+      <h3 class="mb-4"><i class="fas fa-chart-line me-2"></i>URL Analytics Dashboard</h3>
+      
+      <form id="statsForm" class="mb-4">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <input type="text" class="form-control" id="statsUrl" placeholder="Enter short URL or alias" required />
+          </div>
+          <div class="col-md-4">
+            <input type="text" class="form-control" id="statsPassword" placeholder="Password (if required)" />
+          </div>
+          <div class="col-md-2">
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="fas fa-search me-2"></i>Analyze
+            </button>
+          </div>
+        </div>
+      </form>
+      <button id="refreshStats" class="refresh-button"><i class="fas fa-sync-alt me-2"></i>Refresh Stats</button>
+      <div id="statsContent" style="display: none">
+        <div class="stats-grid">
+          <div class="stats-card">
+            <i class="fas fa-mouse-pointer"></i>
+            <h4>Total Clicks</h4>
+            <p id="totalClicks">0</p>
+          </div>
+          <div class="stats-card">
+            <i class="fas fa-users"></i>
+            <h4>Unique Visitors</h4>
+            <p id="uniqueClicks">0</p>
+          </div>
+          <div class="stats-card">
+            <i class="fas fa-clock"></i>
+            <h4>Last Click</h4>
+            <p id="lastClick">-</p>
+          </div>
+          <div class="stats-card">
+            <i class="fas fa-calendar-alt"></i>
+            <h4>Created On</h4>
+            <p id="creationDate">-</p>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="chart-container">
+            <h5><i class="fas fa-globe me-2"></i>Geographic Distribution</h5>
+            <canvas id="countryChart"></canvas>
+          </div>
+          <div class="chart-container">
+            <h5><i class="fas fa-laptop me-2"></i>Browser Usage</h5>
+            <canvas id="browserChart"></canvas>
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="chart-container">
+            <h5><i class="fas fa-desktop me-2"></i>Operating Systems</h5>
+            <canvas id="osChart"></canvas>
+          </div>
+          <div class="chart-container">
+            <h5><i class="fas fa-link me-2"></i>Top Referrers</h5>
+            <canvas id="referrerChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="notification" class="notification">
+      <div class="d-flex justify-content-between align-items-center">
+        <span id="notificationMessage"></span>
+        <button id="closeNotification" class="btn-close"></button>
+      </div>
+    </div>
+  </body>
+  <script>
+    const toggleButton = document.getElementById("toggleMode");
+    const notificationDiv = document.getElementById("notification");
+    const notificationMessage = document.getElementById("notificationMessage");
+    const closeNotificationButton =
+      document.getElementById("closeNotification");
+    let qrcode = null;
+
+    function showNotification(message, type) {
+      notificationMessage.textContent = message;
+      notificationDiv.className = `notification ${type} show`;
+      setTimeout(() => {
+        notificationDiv.classList.remove("show");
+      }, 5000);
+    }
+
+    function generateQRCode(url) {
+      const qrcodeContainer = document.getElementById("qrcode");
+      qrcodeContainer.innerHTML = "";
+      qrcode = new QRCode(qrcodeContainer, {
+        text: url,
+        width: 128,
+        height: 128,
+      });
+    }
+
+    // URL Shortener form submission
+    document
+      .getElementById("shortenForm")
+      .addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const urlInput = document.getElementById("url").value;
+        const aliasInput = document.getElementById("alias").value;
+        const passwordInput = document.getElementById("password").value;
+        const maxClicksInput = document.getElementById("maxClicks").value;
+
+        const url = "https://spoo.me/";
+        const data = new URLSearchParams();
+        data.append("url", urlInput);
+
+        if (aliasInput) data.append("alias", aliasInput);
+        if (passwordInput) data.append("password", passwordInput);
+        if (maxClicksInput) data.append("max-clicks", maxClicksInput);
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader(
+          "Content-type",
+          "application/x-www-form-urlencoded"
+        );
+        xhr.setRequestHeader("Accept", "application/json");
+
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState == 4) {
+            if (xhr.status == 200) {
+              const response = JSON.parse(xhr.responseText);
+
+              // Update URL display
+              const shortUrlContainer =
+                document.getElementById("shortUrlContainer");
+              shortUrlContainer.innerHTML = `
+                    <a href="${response.short_url}" target="_blank">${response.short_url}</a>
+                    <button onclick="navigator.clipboard.writeText('${response.short_url}')" class="copy-button ms-2">
+                        <i class="fas fa-copy"></i> Copy
+                    </button>
+                `;
+
+              // Generate QR code
+              generateQRCode(response.short_url);
+              showNotification("URL successfully shortened!", "success");
+            } else {
+              showNotification(
+                "Error shortening URL. Please try again.",
+                "error"
+              );
+            }
+          }
+        };
+
+        xhr.send(data);
+      });
+
+      function createChart(ctx, labels, data, title, type = 'pie') {
+        return new Chart(ctx, {
+          type: type,
+          data: {
+            labels: labels,
+            datasets: [{
+              data: data,
+              backgroundColor: [
+                '#FF6384',
+                '#36A2EB',
+                '#FFCE56',
+                '#4BC0C0',
+                '#9966FF',
+                '#FF9F40'
+              ]
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'right',
+                labels: {
+                  color: document.body.classList.contains('dark-mode') ? '#ffffff' : '#000000'
+                }
+              },
+              title: {
+                display: true,
+                text: title
+              }
+            }
+          }
+        });
+      }
+
+      // Function to fetch and display URL statistics
+function fetchUrlStats(shortCode, password = '') {
+  const url = `https://spoo.me/stats/${shortCode}`;
+  const data = new URLSearchParams();
+  
+  if (password) {
+    data.append('password', password);
+  }
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', url, true);
+  xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+  
+  xhr.onreadystatechange = function () {
+    if (xhr.readyState == 4) {
+      if (xhr.status == 200) {
+        const stats = JSON.parse(xhr.responseText);
+        displayStats(stats);
+        showNotification("Statistics fetched successfully!", "success");
+      } else {
+        console.error(`Error fetching statistics: ${xhr.status} - ${xhr.statusText}`);
+        console.error(`Response: ${xhr.responseText}`);
+        showNotification("Error fetching statistics. Please check your URL and password.", "error");
+      }
+    }
+  };
+  
+  xhr.send(data);
+}
+
+// Function to display the fetched statistics
+function displayStats(stats) {
+  // Update basic stats
+  document.getElementById("totalClicks").textContent = stats["total-clicks"] || 0;
+  document.getElementById("uniqueClicks").textContent = stats["total_unique_clicks"] || 0;
+  document.getElementById("lastClick").textContent = stats["last-click"] ? new Date(stats["last-click"]).toLocaleString() : '-';
+  document.getElementById("creationDate").textContent = stats["creation-date"] ? new Date(stats["creation-date"]).toLocaleString() : '-';
+
+  // Update charts
+  updateChart("countryChart", "Geographic Distribution", stats.country || {});
+  updateChart("browserChart", "Browser Usage", stats.browser || {});
+  updateChart("osChart", "Operating Systems", stats.os_name || {});
+  updateChart("referrerChart", "Top Referrers", stats.referrer || {});
+
+  // Show the stats content section
+  document.getElementById("statsContent").style.display = "block";
+}
+
+// Update the stats form submission handler
+document.getElementById("statsForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  
+  const statsUrl = document.getElementById("statsUrl").value;
+  const statsPassword = document.getElementById("statsPassword").value;
+  
+  // Extract short code from URL if full URL is provided
+  const shortCode = statsUrl.includes('spoo.me/') 
+    ? statsUrl.split('spoo.me/').pop() 
+    : statsUrl;
+  
+  fetchUrlStats(shortCode, statsPassword);
+});
+
+let countryChartInstance = null;
+let browserChartInstance = null;
+let osChartInstance = null;
+let referrerChartInstance = null;
+
+function updateChart(chartId, title, data) {
+  const ctx = document.getElementById(chartId).getContext('2d');
+  const labels = Object.keys(data);
+  const values = Object.values(data);
+
+  // Destroy existing chart instance if it exists
+  if (chartId === 'countryChart' && countryChartInstance) {
+    countryChartInstance.destroy();
+  } else if (chartId === 'browserChart' && browserChartInstance) {
+    browserChartInstance.destroy();
+  } else if (chartId === 'osChart' && osChartInstance) {
+    osChartInstance.destroy();
+  } else if (chartId === 'referrerChart' && referrerChartInstance) {
+    referrerChartInstance.destroy();
+  }
+
+  // Create new chart instance
+  const newChartInstance = createChart(ctx, labels, values, title);
+
+  // Save the new chart instance
+  if (chartId === 'countryChart') {
+    countryChartInstance = newChartInstance;
+  } else if (chartId === 'browserChart') {
+    browserChartInstance = newChartInstance;
+  } else if (chartId === 'osChart') {
+    osChartInstance = newChartInstance;
+  } else if (chartId === 'referrerChart') {
+    referrerChartInstance = newChartInstance;
+  }
+}
+
+      // Update dark mode toggle to refresh charts
+      toggleButton.addEventListener('click', function() {
+        document.body.classList.toggle('dark-mode');
+        this.classList.toggle('active');
+        
+        // Save preference to localStorage
+        const isDarkMode = document.body.classList.contains('dark-mode');
+        localStorage.setItem('darkMode', isDarkMode);
+
+        // Refresh charts if they exist
+        if (document.getElementById('statsContent').style.display !== 'none') {
+          const statsForm = document.getElementById('statsForm');
+          statsForm.dispatchEvent(new Event('submit'));
+        }
+      });
+
+    // QR Code download functionality
+    document
+      .getElementById("downloadQR")
+      .addEventListener("click", function () {
+        if (!qrcode) {
+          showNotification("No QR code available to download", "error");
+          return;
+        }
+
+        // Get the QR code canvas
+        const canvas = document.querySelector("#qrcode canvas");
+        if (!canvas) {
+          showNotification("Error generating QR code image", "error");
+          return;
+        }
+
+        // Create temporary link for download
+        const link = document.createElement("a");
+        link.download = "qrcode.png";
+        link.href = canvas.toDataURL("image/png");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showNotification("QR code downloaded successfully!", "success");
+      });
+
+    // Close notification button
+    closeNotificationButton.addEventListener("click", function () {
+      notificationDiv.classList.remove("show");
+    });
+
+    // Copy URL notification
+    document.addEventListener("click", function (e) {
+      if (e.target.closest(".copy-button")) {
+        showNotification("URL copied to clipboard!", "success");
+      }
+    });
+
+    // Load dark mode preference from localStorage
+    document.addEventListener('DOMContentLoaded', function() {
+      const isDarkMode = localStorage.getItem('darkMode') === 'true';
+      if (isDarkMode) {
+        document.body.classList.add('dark-mode');
+        toggleButton.classList.add('active');
+      }
+    });
+
+    // Refresh stats button functionality
+    document.getElementById('refreshStats').addEventListener('click', function() {
+      const statsForm = document.getElementById('statsForm');
+      statsForm.dispatchEvent(new Event('submit'));
+    });
+  </script>
+</html>
