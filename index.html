@@ -276,6 +276,110 @@
       .refresh-button:hover {
         background: #e68900;
       }
+
+      /* Add these new responsive styles */
+      @media (max-width: 768px) {
+        .content-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .chart-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .main-container {
+          margin: 1rem;
+          padding: 0.5rem;
+        }
+
+        .header {
+          flex-direction: column;
+          text-align: center;
+        }
+
+        .header h1 {
+          font-size: 1.8rem;
+        }
+
+        .container {
+          padding: 15px;
+        }
+
+        .stats-section {
+          padding: 1rem;
+        }
+
+        .stats-card {
+          padding: 1rem;
+        }
+
+        .stats-card i {
+          font-size: 2rem;
+        }
+
+        .stats-card h4 {
+          font-size: 1rem;
+        }
+
+        .stats-card p {
+          font-size: 1.2rem;
+        }
+
+        .chart-container {
+          padding: 1rem;
+          margin-bottom: 1rem;
+        }
+
+        #statsForm .row {
+          margin: 0;
+        }
+
+        #statsForm .col-md-2,
+        #statsForm .col-md-4,
+        #statsForm .col-md-6 {
+          margin-bottom: 10px;
+        }
+
+        .notification {
+          left: 20px;
+          right: 20px;
+          max-width: none;
+        }
+
+        .qr-section {
+          margin-top: 0.5rem;
+        }
+
+        #qrcode img {
+          max-width: 100%;
+          height: auto;
+        }
+
+        .copy-button,
+        .download-qr,
+        .refresh-button {
+          width: 100%;
+          margin-top: 0.5rem;
+        }
+      }
+
+      /* Add styles for better touch interaction on mobile */
+      @media (hover: none) {
+        .stats-card:hover {
+          transform: none;
+        }
+
+        button,
+        .copy-button,
+        .download-qr,
+        .refresh-button {
+          padding: 0.8rem 1rem;
+        }
+      }
     </style>
   </head>
   <body>
