@@ -557,8 +557,9 @@
       qrcodeContainer.innerHTML = "";
       qrcode = new QRCode(qrcodeContainer, {
         text: url,
-        width: 128,
-        height: 128,
+        width: 256,  // Increased size
+        height: 256, // Increased size
+        correctLevel: QRCode.CorrectLevel.H // Highest error correction level
       });
     }
 
@@ -778,17 +779,23 @@ function updateChart(chartId, title, data) {
           return;
         }
 
-        // Get the QR code canvas
+        // Create a new canvas with higher resolution
         const canvas = document.querySelector("#qrcode canvas");
-        if (!canvas) {
-          showNotification("Error generating QR code image", "error");
-          return;
-        }
+        const scale = 4; // Increase resolution by 4x
+        const scaledCanvas = document.createElement('canvas');
+        scaledCanvas.width = canvas.width * scale;
+        scaledCanvas.height = canvas.height * scale;
+        
+        const ctx = scaledCanvas.getContext('2d');
+        // Enable smooth scaling
+        ctx.imageSmoothingEnabled = false;
+        // Draw the original canvas content onto the scaled canvas
+        ctx.drawImage(canvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
 
         // Create temporary link for download
         const link = document.createElement("a");
         link.download = "qrcode.png";
-        link.href = canvas.toDataURL("image/png");
+        link.href = scaledCanvas.toDataURL("image/png", 1.0); // Use maximum quality
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
